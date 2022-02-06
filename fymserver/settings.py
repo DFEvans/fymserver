@@ -32,6 +32,7 @@ ALLOWED_HOSTS: List[str] = []
 # Application definition
 
 INSTALLED_APPS = [
+    "maps",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
