@@ -17,3 +17,8 @@ repos:
     entry: isort
     language: system
     types: [python]
+  - id: mypy
+    name: mypy
+    entry: mypy
+    language: system
+    types: [python]
