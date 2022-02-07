@@ -134,6 +134,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 AWS_QUERYSTRING_EXPIRE = "360"
 AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_ADDRESSING_STYLE = "virtual"
+AWS_S3_REGION_NAME = "us-east-2"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

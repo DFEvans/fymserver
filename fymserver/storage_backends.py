@@ -3,8 +3,8 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class MapDataS3Storage(S3Boto3Storage):
-    bucket_name = "fymserver-mapfiles"
-    location = "private"
+    bucket_name = "freightyardmanager-serverdata"
+    location = "maps"
     default_acl = "private"
     file_overwrite = False
     custom_domain = False
