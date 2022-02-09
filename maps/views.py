@@ -5,8 +5,8 @@ from .models import Map
 
 
 # Create your views here.
-def index(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("Hello, world!")
+def index(request: HttpRequest) -> JsonResponse:
+    return JsonResponse({"maps": [map_obj.id for map_obj in Map.objects.all()]})
 
 
 def _get_map_file(pk: int, file_attr: str) -> HttpResponse:

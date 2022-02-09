@@ -18,16 +18,16 @@ def mock_file(filename: str) -> mock.MagicMock:
     return mock_file
 
 
-def create_map(id=1001, mod_date=None, jpg_file=None, yrd_file=None, his_file=None):
+def create_map(map_id=1001, mod_date=None, jpg_file=None, yrd_file=None, his_file=None):
     if not mod_date:
         mod_date = timezone.now()
 
-    jpg_file = jpg_file or mock_file(f"{id}.jpg")
-    yrd_file = yrd_file or mock_file(f"{id}.yrd")
-    his_file = his_file or mock_file(f"{id}.his")
+    jpg_file = jpg_file or mock_file(f"{map_id}.jpg")
+    yrd_file = yrd_file or mock_file(f"{map_id}.yrd")
+    his_file = his_file or mock_file(f"{map_id}.his")
 
     return Map.objects.create(
-        id=id,
+        id=map_id,
         modified_date=mod_date,
         jpg_file=jpg_file,
         yrd_file=yrd_file,
@@ -35,18 +35,10 @@ def create_map(id=1001, mod_date=None, jpg_file=None, yrd_file=None, his_file=No
     )
 
 
-# Create your tests here.
-class MapsIndexViewTests(TestCase):
-    def test_works(self):
-        response = self.client.get(reverse("maps:index"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Hello, world!")
-
-
 @override_storage()
 class MapModelTests(TestCase):
     def test_map_id_1001_should_be_valid(self):
-        map = create_map(id=1001)
+        map = create_map(map_id=1001)
         self.assertEqual(1001, map.id)
 
     def test_modified_date_is_stored(self):
@@ -105,4 +97,33 @@ class MapModifiedDateViewTests(TestCase):
         map = create_map(mod_date=timezone.datetime(2000, 1, 31, 12, 34, 56))
         url = reverse("maps:modified_date", args=(map.id,))
         response = cast(JsonResponse, self.client.get(url))
+        self.assertJSONEqual(response.content.decode(), expected_json)
+
+
+@override_storage()
+class MapListViewTests(TestCase):
+    def test_returns_empty_list_for_no_maps(self):
+        expected_json = {"maps": []}
+
+        url = reverse("maps:index")
+        response = self.client.get(url)
+        self.assertJSONEqual(response.content.decode(), expected_json)
+
+    def test_returns_single_entry_for_one_known_map(self):
+        expected_json = {"maps": [1001]}
+
+        create_map(map_id=1001)
+
+        url = reverse("maps:index")
+        response = self.client.get(url)
+        self.assertJSONEqual(response.content.decode(), expected_json)
+
+    def test_returns_multiple_maps_in_id_order(self):
+        expected_json = {"maps": [1001, 1002]}
+
+        create_map(map_id=1002)
+        create_map(map_id=1001)
+
+        url = reverse("maps:index")
+        response = self.client.get(url)
         self.assertJSONEqual(response.content.decode(), expected_json)
