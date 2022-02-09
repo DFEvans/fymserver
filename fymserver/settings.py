@@ -159,5 +159,3 @@ LOGGING = {
         "level": "INFO",
     },
 }
-
-TEST_RUNNER = "fymserver.test_runner.FastTestRunner"
