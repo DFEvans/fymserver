@@ -30,6 +30,10 @@ DEBUG = os.getenv("DJANGO_DEBUG") == "TRUE"
 ALLOWED_HOSTS = ["www.fymanager.com", ".localhost", "127.0.0.1", "[::1]"]
 DEFAULT_FROM_EMAIL = "webmaster@fymanager.com"
 
+# HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 # Application definition
 
 INSTALLED_APPS = [
