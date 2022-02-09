@@ -100,9 +100,9 @@ class MapHisFileViewTests(TestCase):
 @override_storage()
 class MapModifiedDateViewTests(TestCase):
     def test_date_view_returns_json_blob(self):
-        expected_json = {"modified_date": "2000-01-01"}
+        expected_json = {"modified_date": "2000-01-31"}
 
-        map = create_map(mod_date=timezone.datetime(2000, 1, 1, 12, 34, 56))
+        map = create_map(mod_date=timezone.datetime(2000, 1, 31, 12, 34, 56))
         url = reverse("maps:modified_date", args=(map.id,))
         response = cast(JsonResponse, self.client.get(url))
         self.assertJSONEqual(response.content.decode(), expected_json)
