@@ -17,14 +17,15 @@ from typing import List
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-PARAMS_FILE = os.getenv("DJANGO_PARAMS_FILE", None)
+PARAMS_FILE = os.getenv("DJANGO_PARAMS_FILE", "django_params.ini")
 if PARAMS_FILE:
     with open(PARAMS_FILE) as f:
         for line in f:
             if not line.strip():
                 continue
             key, value = line.strip().split("=")
-            value = value.strip("\"")
+            value = value.strip('"')
+            print(key, value)
             os.environ[key] = value
 
 # Quick-start development settings - unsuitable for production
@@ -36,7 +37,13 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG") == "TRUE"
 
-ALLOWED_HOSTS = ["www.fymanager.com", "fymanager.com", ".localhost", "127.0.0.1", "[::1]"]
+ALLOWED_HOSTS = [
+    "www.fymanager.com",
+    "fymanager.com",
+    ".localhost",
+    "127.0.0.1",
+    "[::1]",
+]
 DEFAULT_FROM_EMAIL = "webmaster@fymanager.com"
 
 # HTTPS
@@ -99,12 +106,12 @@ if DEBUG:
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv("DJANGO_DB_NAME"),
-            'USER': os.getenv("DJANGO_DB_USER"),
-            'PASSWORD': os.getenv("DJANGO_DB_PASSWORD"),
-            'HOST': "localhost",
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.getenv("DJANGO_DB_NAME"),
+            "USER": os.getenv("DJANGO_DB_USER"),
+            "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
+            "HOST": "localhost",
         }
     }
 
@@ -157,7 +164,7 @@ STATIC_URL = "static/"
 if DEBUG:
     STATIC_ROOT = BASE_DIR / "static"
 else:
-	STATIC_ROOT = '/var/www/html/static/'
+    STATIC_ROOT = Path("/var/www/html/static/")
 
 AWS_QUERYSTRING_EXPIRE = "360"
 AWS_S3_SIGNATURE_VERSION = "s3v4"
