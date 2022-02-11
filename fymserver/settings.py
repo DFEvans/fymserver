@@ -24,7 +24,6 @@ if not PARAMS_FILE:
             PARAMS_FILE = filepath
             break
 
-print(PARAMS_FILE)
 if PARAMS_FILE:
     with open(PARAMS_FILE) as f:
         for line in f:

@@ -27,7 +27,7 @@ def ingest_map(dirpath: Path, map_id: int):
     if not date_str:
         raise ValueError(f"Could not find Fver line in {yrd_path}")
 
-    date = make_aware(datetime.strptime(date_str, r"%m/%d/%Y"))
+    date = make_aware(datetime.strptime(date_str, r"%d/%m/%Y"))
 
     if Map.objects.filter(pk=map_id).exists():
         m = cast(Map, Map.objects.get(pk=map_id))
