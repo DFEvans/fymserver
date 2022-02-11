@@ -17,6 +17,15 @@ from typing import List
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+PARAMS_FILE = os.getenv("DJANGO_PARAMS_FILE", None)
+if PARAMS_FILE:
+    with open(PARAMS_FILE) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            key, value = line.strip().split("=")
+            value = value.strip("\"")
+            os.environ[key] = value
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
