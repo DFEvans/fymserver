@@ -7,6 +7,7 @@ from typing import cast
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
+from tqdm import tqdm
 
 from maps.models import Map
 
@@ -53,7 +54,7 @@ def ingest_map(dirpath: Path, map_id: int):
 
 
 def ingest_maps(dirpath: Path):
-    for yrd_file in glob(str(dirpath / "*.yrd")):
+    for yrd_file in tqdm(glob(str(dirpath / "*.yrd"))):
         map_id_str = os.path.splitext(os.path.basename(yrd_file))[0]
         try:
             map_id = int(map_id_str)
