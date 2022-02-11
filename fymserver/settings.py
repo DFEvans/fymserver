@@ -22,7 +22,9 @@ if not PARAMS_FILE:
     for filepath in ["/etc/django_params.ini", "django_params.ini"]:
         if os.path.exists(filepath):
             PARAMS_FILE = filepath
+            break
 
+print(PARAMS_FILE)
 if PARAMS_FILE:
     with open(PARAMS_FILE) as f:
         for line in f:
