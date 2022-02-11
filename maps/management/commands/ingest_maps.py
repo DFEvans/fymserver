@@ -54,7 +54,12 @@ def ingest_map(dirpath: Path, map_id: int):
 
 def ingest_maps(dirpath: Path):
     for yrd_file in glob(str(dirpath / "*.yrd")):
-        map_id = os.path.splitext(os.path.basename(yrd_file))[0]
+        map_id_str = os.path.splitext(os.path.basename(yrd_file))[0]
+        try:
+            map_id = int(map_id_str)
+        except ValueError:
+            print(yrd_file)
+            continue
         ingest_map(dirpath, int(map_id))
 
 
