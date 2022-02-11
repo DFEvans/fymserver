@@ -4,6 +4,7 @@ from glob import glob
 from pathlib import Path
 from typing import cast
 
+from django.core.files.base import File
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
@@ -30,21 +31,20 @@ def ingest_map(dirpath: Path, map_id: int):
 
     if Map.objects.filter(pk=map_id).exists():
         m = cast(Map, Map.objects.get(pk=map_id))
-        if m.modified_date != date:
-            m.modified_date = date
-            m.jpg_file = jpg_path
-            m.yrd_file = yrd_path
-            m.his_file = his_path
-            m.save()
+        if m.modified_date == date:
+            return
+        m.modified_date = date
+
     else:
-        m = Map(
-            id=map_id,
-            modified_date=date,
-            jpg_file=jpg_path,
-            yrd_file=yrd_path,
-            his_file=his_path,
-        )
-        m.save()
+        m = Map(id=map_id, modified_date=date)
+
+    with open(jpg_path, "rb") as f1:
+        m.jpg_file.save(f"{map_id}.jpg", File(f))
+    with open(yrd_path, "rb") as f2:
+        m.yrd_file.save(f"{map_id}.yrd", File(f))
+    with open(his_path, "rb") as f3:
+        m.his_file.save(f"{map_id}.his", File(f))
+    m.save()
 
 
 def ingest_maps(dirpath: Path):
