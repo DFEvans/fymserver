@@ -16,7 +16,13 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-PARAMS_FILE = os.getenv("DJANGO_PARAMS_FILE", "django_params.ini")
+PARAMS_FILE = os.getenv("DJANGO_PARAMS_FILE", None)
+
+if not PARAMS_FILE:
+    for filepath in ["/etc/django_params.ini", "django_params.ini"]:
+        if os.path.exists(filepath):
+            PARAMS_FILE = filepath
+
 if PARAMS_FILE:
     with open(PARAMS_FILE) as f:
         for line in f:
