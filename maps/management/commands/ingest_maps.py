@@ -30,7 +30,7 @@ def ingest_map(dirpath: Path, map_id: int):
         raise ValueError(f"Could not find Fver line in {yrd_path}")
 
     try:
-        date = make_aware(datetime.strptime(date_str, r"%m/%d/%Y"))
+        date = datetime.strptime(date_str, r"%m/%d/%Y").date()
     except ValueError:
         print(yrd_path)
         return
@@ -59,7 +59,6 @@ def ingest_maps(dirpath: Path):
         try:
             map_id = int(map_id_str)
         except ValueError:
-            print(yrd_file)
             continue
         ingest_map(dirpath, int(map_id))
 
