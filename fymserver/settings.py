@@ -27,7 +27,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG") == "TRUE"
 
-ALLOWED_HOSTS = ["www.fymanager.com", ".localhost", "127.0.0.1", "[::1]"]
+ALLOWED_HOSTS = ["www.fymanager.com", "fymanager.com", ".localhost", "127.0.0.1", "[::1]"]
 DEFAULT_FROM_EMAIL = "webmaster@fymanager.com"
 
 # HTTPS
@@ -81,12 +81,23 @@ WSGI_APPLICATION = "fymserver.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv("DJANGO_DB_NAME"),
+            'USER': os.getenv("DJANGO_DB_USER"),
+            'PASSWORD': os.getenv("DJANGO_DB_PASSWORD"),
+            'HOST': "localhost",
+        }
+    }
 
 
 # Password validation
@@ -134,7 +145,10 @@ if USE_S3:
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+if DEBUG:
+    STATIC_ROOT = BASE_DIR / "static"
+else:
+	STATIC_ROOT = '/var/www/html/static/'
 
 AWS_QUERYSTRING_EXPIRE = "360"
 AWS_S3_SIGNATURE_VERSION = "s3v4"
