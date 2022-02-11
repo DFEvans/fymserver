@@ -24,7 +24,6 @@ if PARAMS_FILE:
                 continue
             key, value = line.strip().split("=")
             value = value.strip('"')
-            print(key, value)
             os.environ[key] = value
 
 # Quick-start development settings - unsuitable for production
