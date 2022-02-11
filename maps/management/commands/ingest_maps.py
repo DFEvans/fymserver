@@ -20,7 +20,8 @@ def ingest_map(dirpath: Path, map_id: int):
 
     with open(yrd_path) as f:
         for line in f:
-            if line.startswith("Fver="):
+            line = line.lower()
+            if line.startswith("fver="):
                 date_str = line.split("=")[1].strip()
                 break
 
