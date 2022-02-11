@@ -164,6 +164,7 @@ if USE_S3:
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_S3_FILE_OVERWRITE = True
 
 STATIC_URL = "static/"
 if DEBUG:
