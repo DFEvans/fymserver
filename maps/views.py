@@ -3,6 +3,7 @@ from typing import cast
 
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Map
@@ -36,7 +37,7 @@ def modified_date(request: HttpRequest, pk: int) -> JsonResponse:
 
 
 @csrf_exempt
-def update(request: HttpRequest, pk: int) -> HttpResponse:
+def update_modified_date(request: HttpRequest, pk: int) -> HttpResponse:
     if "modified_date" not in request.POST:
         return HttpResponseBadRequest("modified_date parameter missing")
 
@@ -47,19 +48,10 @@ def update(request: HttpRequest, pk: int) -> HttpResponse:
     except ValueError:
         return HttpResponseBadRequest("Malformed modified_date, must be YYYY-MM-DD")
 
-    jpg_exists = "jpg_file" in request.FILES
-    yrd_exists = "yrd_file" in request.FILES
-    his_exists = "his_file" in request.FILES
-
     if Map.objects.filter(pk=pk).exists():
         map_obj = cast(Map, Map.objects.get(pk=pk))
         map_obj.modified_date = modified_date
     else:
-        if not (jpg_exists and yrd_exists and his_exists):
-            return HttpResponseBadRequest(
-                f"Map {pk} does not exist, all files must be provided"
-            )
-
         map_obj = cast(
             Map,
             Map.objects.create(
@@ -68,15 +60,45 @@ def update(request: HttpRequest, pk: int) -> HttpResponse:
             ),
         )
 
-    if jpg_exists:
-        map_obj.jpg_file.save(f"{pk}.jpg", request.FILES["jpg_file"])
+    map_obj.save()
 
-    if yrd_exists:
-        map_obj.yrd_file.save(f"{pk}.yrd", request.FILES["yrd_file"])
+    return HttpResponse()
 
-    if his_exists:
-        map_obj.his_file.save(f"{pk}.his", request.FILES["his_file"])
+
+def update_file(request: HttpRequest, pk: int, file_attr: str, file_ext: str):
+    if file_attr not in request.FILES:
+        return HttpResponseBadRequest(f"{file_attr} not provided")
+
+    file_obj = request.FILES[file_attr]
+
+    if Map.objects.filter(pk=pk).exists():
+        map_obj = cast(Map, Map.objects.get(pk=pk))
+    else:
+        map_obj = cast(
+            Map,
+            Map.objects.create(
+                id=pk,
+                modified_date=timezone.now(),
+            ),
+        )
+
+    getattr(map_obj, file_attr).save(f"{pk}.{file_ext}", file_obj)
 
     map_obj.save()
 
     return HttpResponse()
+
+
+@csrf_exempt
+def update_jpg_file(request: HttpRequest, pk: int) -> HttpResponse:
+    return update_file(request, pk, "jpg_file", "jpg")
+
+
+@csrf_exempt
+def update_yrd_file(request: HttpRequest, pk: int) -> HttpResponse:
+    return update_file(request, pk, "yrd_file", "yrd")
+
+
+@csrf_exempt
+def update_his_file(request: HttpRequest, pk: int) -> HttpResponse:
+    return update_file(request, pk, "his_file", "his")
