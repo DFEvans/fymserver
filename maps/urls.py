@@ -10,4 +10,5 @@ urlpatterns = [
     path("<int:pk>/yrd_file/", views.yrd_file, name="yrd_file"),
     path("<int:pk>/his_file/", views.his_file, name="his_file"),
     path("<int:pk>/modified_date/", views.modified_date, name="modified_date"),
+    path("<int:pk>/update/", views.update, name="update"),
 ]

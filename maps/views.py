@@ -1,5 +1,9 @@
+from datetime import datetime
+from typing import cast
+
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.timezone import make_aware
 
 from .models import Map
 
@@ -29,3 +33,27 @@ def his_file(request: HttpRequest, pk: int) -> HttpResponse:
 def modified_date(request: HttpRequest, pk: int) -> JsonResponse:
     map_obj = get_object_or_404(Map, pk=pk)
     return JsonResponse({"modified_date": map_obj.modified_date})
+
+
+def update(request: HttpRequest, pk: int) -> HttpResponse:
+    modified_date = datetime.strptime(request.POST["modified_date"], r"%Y-%m-%d").date()
+
+    if Map.objects.filter(pk=pk).exists():
+        map_obj = cast(Map, Map.objects.get(pk=pk))
+        map_obj.modified_date = modified_date
+    else:
+        map_obj = cast(
+            Map,
+            Map.objects.create(
+                id=pk,
+                modified_date=modified_date,
+            ),
+        )
+
+    map_obj.jpg_file.save(f"{pk}.jpg", request.FILES["jpg_file"])
+    map_obj.yrd_file.save(f"{pk}.yrd", request.FILES["yrd_file"])
+    map_obj.his_file.save(f"{pk}.his", request.FILES["his_file"])
+
+    map_obj.save()
+
+    return HttpResponse()

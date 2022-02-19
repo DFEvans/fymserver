@@ -1,3 +1,5 @@
+from datetime import date
+from io import BytesIO
 from typing import cast
 from unittest import mock
 
@@ -7,6 +9,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from override_storage import override_storage
+from override_storage.storage import LocMemStorage
 
 from .models import Map
 
@@ -127,3 +130,67 @@ class MapListViewTests(TestCase):
         url = reverse("maps:index")
         response = self.client.get(url)
         self.assertJSONEqual(response.content.decode(), expected_json)
+
+
+class OverwritingLocMemStorage(LocMemStorage):
+    def get_available_name(self, name, max_length=None):
+        if name in self.cache:
+            del self.cache[name]
+        return name
+
+
+@override_storage(storage=OverwritingLocMemStorage)
+class MapUpdateTests(TestCase):
+    def assert_files_ok(self, map_id: int, mod_date: date):
+        assert Map.objects.filter(pk=map_id).exists()
+        map_obj = cast(Map, Map.objects.get(pk=map_id))
+        assert mod_date == map_obj.modified_date
+        assert f"{map_id}.jpg" == map_obj.jpg_file.name
+        assert f"{map_id}.yrd" == map_obj.yrd_file.name
+        assert f"{map_id}.his" == map_obj.his_file.name
+
+        assert b"jpg_data" == map_obj.jpg_file.read()
+        assert b"yrd_data" == map_obj.yrd_file.read()
+        assert b"his_data" == map_obj.his_file.read()
+
+    def test_update_succeeds_for_new_map(self):
+        map_id = 1001
+        modified_date = "2000-01-01"
+        jpg_file = BytesIO(b"jpg_data")
+        yrd_file = BytesIO(b"yrd_data")
+        his_file = BytesIO(b"his_data")
+
+        url = reverse("maps:update", args=(map_id,))
+        self.client.post(
+            url,
+            {
+                "jpg_file": jpg_file,
+                "yrd_file": yrd_file,
+                "his_file": his_file,
+                "modified_date": modified_date,
+            },
+        )
+
+        self.assert_files_ok(map_id, date(2000, 1, 1))
+
+    def test_update_succeeds_for_existing_map(self):
+        map_id = 1001
+        modified_date = "2000-01-01"
+        jpg_file = BytesIO(b"jpg_data")
+        yrd_file = BytesIO(b"yrd_data")
+        his_file = BytesIO(b"his_data")
+
+        create_map(map_id)
+
+        url = reverse("maps:update", args=(map_id,))
+        self.client.post(
+            url,
+            {
+                "jpg_file": jpg_file,
+                "yrd_file": yrd_file,
+                "his_file": his_file,
+                "modified_date": modified_date,
+            },
+        )
+
+        self.assert_files_ok(map_id, date(2000, 1, 1))
