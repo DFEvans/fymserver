@@ -66,10 +66,12 @@ def update_modified_date(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def update_file(request: HttpRequest, pk: int, file_attr: str, file_ext: str):
-    if file_attr not in request.FILES:
-        return HttpResponseBadRequest(f"{file_attr} not provided")
+    if len(request.FILES) != 1:
+        return HttpResponseBadRequest(
+            f"Expected 1 file attachment, got {len(request.FILES)}"
+        )
 
-    file_obj = request.FILES[file_attr]
+    file_obj = request.FILES[list(request.FILES.keys())[0]]
 
     if Map.objects.filter(pk=pk).exists():
         map_obj = cast(Map, Map.objects.get(pk=pk))
