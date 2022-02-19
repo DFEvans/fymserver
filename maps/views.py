@@ -3,6 +3,7 @@ from typing import cast
 
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Map
 
@@ -34,6 +35,7 @@ def modified_date(request: HttpRequest, pk: int) -> JsonResponse:
     return JsonResponse({"modified_date": map_obj.modified_date})
 
 
+@csrf_exempt
 def update(request: HttpRequest, pk: int) -> HttpResponse:
     if "modified_date" not in request.POST:
         return HttpResponseBadRequest("modified_date parameter missing")
