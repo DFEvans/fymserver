@@ -6,5 +6,5 @@ class MapDataS3Storage(S3Boto3Storage):
     bucket_name = "freightyardmanager-serverdata"
     location = "maps"
     default_acl = "private"
-    file_overwrite = False
+    file_overwrite = True
     custom_domain = False
