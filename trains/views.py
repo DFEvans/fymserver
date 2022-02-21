@@ -28,12 +28,8 @@ def index(request: HttpRequest) -> HttpResponse:
         trains = trains.filter(upload_date__lte=upload_before_date)
 
     return JsonResponse(
-        {
-            "trains": [
-                {"pk": train.pk, "file": train.train_file.name}
-                for train in trains.all()
-            ]
-        }
+        [{"pk": train.pk, "file": train.train_file.name} for train in trains.all()],
+        safe=False,
     )
 
 

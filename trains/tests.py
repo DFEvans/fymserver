@@ -51,16 +51,14 @@ class TrainIndexViewTests(TestCase):
     def test_train_index_view_is_empty_for_no_trains(self):
         url = reverse("trains:index")
         response = self.client.get(url)
-        self.assertJSONEqual(response.content, {"trains": []})
+        self.assertJSONEqual(response.content, [])
 
     def test_returns_one_train_with_one_train_in_db_and_no_filter(self):
         pk = create_train("train01.zrn")
 
         url = reverse("trains:index")
         response = self.client.get(url)
-        self.assertJSONEqual(
-            response.content, {"trains": [{"pk": pk, "file": "train01.zrn"}]}
-        )
+        self.assertJSONEqual(response.content, [{"pk": pk, "file": "train01.zrn"}])
 
     def test_returns_two_trains_with_two_trains_in_db_and_no_filter(self):
         pk1 = create_train("train01.zrn")
@@ -70,12 +68,10 @@ class TrainIndexViewTests(TestCase):
         response = self.client.get(url)
         self.assertJSONEqual(
             response.content,
-            {
-                "trains": [
-                    {"pk": pk1, "file": "train01.zrn"},
-                    {"pk": pk2, "file": "train02.zrn"},
-                ]
-            },
+            [
+                {"pk": pk1, "file": "train01.zrn"},
+                {"pk": pk2, "file": "train02.zrn"},
+            ],
         )
 
     def test_returns_only_trains_to_and_from_specified_player(self):
@@ -87,12 +83,10 @@ class TrainIndexViewTests(TestCase):
         response = self.client.get(url, {"player": "player1"})
         self.assertJSONEqual(
             response.content,
-            {
-                "trains": [
-                    {"pk": pk1, "file": "train01.zrn"},
-                    {"pk": pk2, "file": "train02.zrn"},
-                ]
-            },
+            [
+                {"pk": pk1, "file": "train01.zrn"},
+                {"pk": pk2, "file": "train02.zrn"},
+            ],
         )
 
     def test_returns_only_trains_with_names_like_request(self):
@@ -101,9 +95,7 @@ class TrainIndexViewTests(TestCase):
 
         url = reverse("trains:index")
         response = self.client.get(url, {"filename": "01"})
-        self.assertJSONEqual(
-            response.content, {"trains": [{"pk": pk1, "file": "train01.zrn"}]}
-        )
+        self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
     def test_returns_only_trains_older_than_n_days(self):
         pk1 = create_train("train01.zrn", upload_date=datetime(2020, 1, 1))
@@ -111,18 +103,14 @@ class TrainIndexViewTests(TestCase):
 
         url = reverse("trains:index")
         response = self.client.get(url, {"upload_before": "2020-12-12"})
-        self.assertJSONEqual(
-            response.content, {"trains": [{"pk": pk1, "file": "train01.zrn"}]}
-        )
+        self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
     def test_returns_only_undownloaded_trains(self):
         pk1 = create_train("train01.zrn", state=TrainState.AVAILABLE)
         pk2 = create_train("train02.zrn", state=TrainState.DOWNLOADED)
         url = reverse("trains:index")
         response = self.client.get(url)
-        self.assertJSONEqual(
-            response.content, {"trains": [{"pk": pk1, "file": "train01.zrn"}]}
-        )
+        self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
 
 @override_storage()
