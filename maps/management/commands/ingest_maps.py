@@ -6,7 +6,6 @@ from typing import cast
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from django.utils.timezone import make_aware
 from tqdm import tqdm
 
 from maps.models import Map

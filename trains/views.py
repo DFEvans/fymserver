@@ -69,5 +69,6 @@ def upload(request: HttpRequest) -> HttpResponse:
         from_player=from_player,
     )
     train_obj.train_file.save(filename, file_obj)
+    train_obj.save()
 
     return HttpResponse()
