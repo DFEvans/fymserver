@@ -8,3 +8,11 @@ class MapDataS3Storage(S3Boto3Storage):
     default_acl = "private"
     file_overwrite = True
     custom_domain = False
+
+
+class TrainDataS3Storage(S3Boto3Storage):
+    bucket_name = "freightyardmanager-serverdata"
+    location = "trains"
+    default_acl = "private"
+    file_overwrite = True
+    custom_domain = False
