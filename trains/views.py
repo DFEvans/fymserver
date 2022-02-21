@@ -64,7 +64,7 @@ def upload(request: HttpRequest) -> HttpResponse:
     to_player = tokens[3]
     from_player = tokens[4]
 
-    train_obj = Train.objects.create(
+    train_obj = Train(
         to_player=to_player,
         from_player=from_player,
     )
