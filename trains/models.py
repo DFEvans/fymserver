@@ -14,7 +14,7 @@ class Train(models.Model):
     train_file = models.FileField(storage=TrainDataS3Storage())
     from_player = models.CharField(max_length=40)
     to_player = models.CharField(max_length=40)
-    downloaded_by = models.CharField(max_length=40, default="")
+    downloaded_by = models.CharField(max_length=40, default="", blank=True)
     upload_date = models.DateField(default=date.today)
     state = models.IntegerField(
         choices=TrainState.choices, default=TrainState.AVAILABLE
