@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Train, TrainState
 
@@ -33,6 +34,7 @@ def index(request: HttpRequest) -> HttpResponse:
     )
 
 
+@csrf_exempt
 def download(request: HttpRequest, pk: int) -> HttpResponse:
     player: str = request.POST.get("player", "")
     if not player:
@@ -49,6 +51,7 @@ def download(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect(train.train_file.url)
 
 
+@csrf_exempt
 def upload(request: HttpRequest) -> HttpResponse:
     if len(request.FILES) != 1:
         return HttpResponseBadRequest(
