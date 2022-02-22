@@ -6,6 +6,6 @@ app_name = "trains"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("<int:pk>/download/", views.download, name="download"),
-    path("upload/", views.upload, name="upload"),
+    path("<int:pk>/download", views.download, name="download"),
+    path("upload", views.upload, name="upload"),
 ]
