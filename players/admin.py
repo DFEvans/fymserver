@@ -6,8 +6,9 @@ from .models import Player
 # Register your models here.
 class PlayerAdmin(admin.ModelAdmin):
     fieldsets = [
-        (None, {"fields": ["id", "username"]}),
+        (None, {"fields": ["username"]}),
     ]
+    readonly_fields = ("id",)
 
 
 admin.site.register(Player, PlayerAdmin)
