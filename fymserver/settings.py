@@ -60,6 +60,7 @@ SESSION_COOKIE_SECURE = True
 INSTALLED_APPS = [
     "maps",
     "trains",
+    "players",
     "storages",
     "django.contrib.admin",
     "django.contrib.auth",

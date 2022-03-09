@@ -19,5 +19,6 @@ from django.urls import include, path
 urlpatterns = [
     path("fymserver/maps/", include("maps.urls")),
     path("fymserver/trains/", include("trains.urls")),
+    path("fymserver/players/", include("players.urls")),
     path("fymserver/admin/", admin.site.urls),
 ]
