@@ -6,6 +6,8 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonR
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 
+from players.models import Player
+
 from .models import Train, TrainState
 
 # Create your views here.
@@ -38,14 +40,15 @@ def index(request: HttpRequest) -> HttpResponse:
 def download(request: HttpRequest, pk: int) -> HttpResponse:
     player: str = request.POST.get("player", "")
     if not player:
-        return HttpResponseBadRequest("No user specified")
+        return HttpResponseBadRequest("No player specified")
 
-    train = get_object_or_404(Train, pk=pk)
+    player_obj: Player = get_object_or_404(Player, pk=player)
+    train: Train = get_object_or_404(Train, pk=pk)
 
     if train.state != TrainState.AVAILABLE:
         return HttpResponseBadRequest("Train unavailable")
 
-    train.set_downloaded(player)
+    train.set_downloaded(player_obj)
     train.save()
 
     return redirect(train.train_file.url)

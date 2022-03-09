@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from io import BytesIO
 from unittest import mock
@@ -7,6 +8,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from override_storage import override_storage
+
+from players.models import Player
 
 from .models import Train, TrainState
 
@@ -36,6 +39,12 @@ def create_train(
         state=state,
     )
     return train.pk
+
+
+def create_player(username: str) -> uuid.UUID:
+    player_obj: Player = Player.objects.create(username=username)
+    player_obj.save()
+    return player_obj.id
 
 
 @override_storage()
@@ -122,25 +131,28 @@ class TrainDownloadViewTests(TestCase):
         self.assertEqual(400, response.status_code)
 
     def test_download_fails_with_unknown_id(self):
+        player_uuid = create_player("Player1")
         url = reverse("trains:download", args=(1,))
-        response = self.client.post(url, data={"player": "Player1"})
+        response = self.client.post(url, data={"player": player_uuid})
         self.assertEqual(404, response.status_code)
 
     def test_download_redirects_to_file_and_sets_state_and_downloader(self):
+        player_uuid = create_player("Player1")
         pk = create_train("train_01.zrn")
         url = reverse("trains:download", args=(pk,))
-        response = self.client.post(url, data={"player": "Player1"})
+        response = self.client.post(url, data={"player": player_uuid})
 
         self.assertRedirects(response, "/train_01.zrn", fetch_redirect_response=False)
         train: Train = Train.objects.get(pk=pk)
 
         assert TrainState.DOWNLOADED == train.state
-        assert "Player1" == train.downloaded_by
+        assert "Player1" == train.downloaded_by.username
 
     def test_download_fails_for_downloaded_file(self):
+        player_uuid = create_player("Player1")
         pk = create_train("train_01.zrn", state=TrainState.DOWNLOADED)
         url = reverse("trains:download", args=(pk,))
-        response = self.client.post(url, data={"player": "Player1"})
+        response = self.client.post(url, data={"player": player_uuid})
 
         self.assertEqual(400, response.status_code)
 
@@ -173,3 +185,4 @@ class TrainUploadViewTests(TestCase):
         assert filename == train.train_file.name
         assert file_data == train.train_file.read()
         assert TrainState.AVAILABLE == train.state
+        assert None == train.downloaded_by
