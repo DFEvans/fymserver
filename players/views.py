@@ -45,7 +45,7 @@ def send_auth_code(request: HttpRequest) -> HttpResponse:
             otp = generate_otp(
                 settings.SECRET_KEY + player_obj.token,
                 settings.OTP_STEP_SECS,
-                int(timezone.now().timestamp()),
+                0,
             )
 
             message = AUTH_CODE_EMAIL_TEXT.format(auth_code=otp)
@@ -93,7 +93,7 @@ def check_auth_code(request: HttpRequest) -> HttpResponse:
     if not validate_otp(
         settings.SECRET_KEY + player_obj.token,
         settings.OTP_STEP_SECS,
-        int(timezone.now().timestamp()),
+        0,
         settings.OTP_DRIFT_RANGE,
         otp,
     ):
