@@ -10,6 +10,7 @@ from django.http import (
     JsonResponse,
 )
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django_otp.oath import totp
 
 from .models import Player
@@ -27,25 +28,11 @@ The authentication code is:
 Enter this code into the prompt in FYM to complete the authentication procedure."""
 
 
-# Create your views here.
-def uuid(request: HttpRequest) -> HttpResponse:
-    player: str = request.GET.get("player", "")
-    if not player:
-        return HttpResponseBadRequest("No player specified")
-
-    if Player.objects.filter(username=player).exists():
-        player_obj = cast(Player, Player.objects.get(username=player))
-    else:
-        player_obj = Player(username=player)
-        player_obj.save()
-
-    return JsonResponse({"uuid": player_obj.id})
-
-
 def generate_otp(key: str, step: int, timestamp: int, drift: int = 0) -> int:
     return totp(key.encode(), step=step, t0=timestamp, drift=drift)
 
 
+@csrf_exempt
 def send_auth_code(request: HttpRequest) -> HttpResponse:
     player: str = request.POST.get("player", "")
     if not player:
@@ -83,6 +70,7 @@ def validate_otp(
     return False
 
 
+@csrf_exempt
 def check_auth_code(request: HttpRequest) -> HttpResponse:
     player: str = request.POST.get("player", "")
     if not player:

@@ -32,28 +32,6 @@ def create_default_player() -> Player:
     return create_player(OK_USERNAME, OK_TOKEN)
 
 
-# Create your tests here.
-class PlayerUuidViewTests(TestCase):
-    def test_players_uuid_returns_a_uuid(self):
-        url = reverse("players:uuid")
-        response = self.client.get(url, data={"player": OK_USERNAME})
-
-        self.assertEqual(200, response.status_code)
-        assert "uuid" in str(response.content)
-
-
-class PlayerValidateTokenTests(TestCase):
-    def test_should_return_true_for_correct_token(self):
-        player = create_default_player()
-
-        assert True == player.validate_token(OK_TOKEN)
-
-    def test_should_return_false_for_correct_token(self):
-        player = create_default_player()
-
-        assert False == player.validate_token(BAD_TOKEN)
-
-
 @valid_player_required
 def wrapped_func(request: HttpRequest, message: str = "ok"):
     return message
