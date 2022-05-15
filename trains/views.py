@@ -13,6 +13,7 @@ from .models import Train, TrainState
 
 
 # Create your views here.
+@csrf_exempt
 @valid_player_required
 def index(request: HttpRequest) -> HttpResponse:
     search_player: str = request.POST.get("search_player", "")
