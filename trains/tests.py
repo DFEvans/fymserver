@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from io import BytesIO
+from typing import Any, Dict
 from unittest import mock
 
 from django.core.files import File
@@ -41,10 +42,22 @@ def create_train(
     return train.pk
 
 
+TOKEN = "abc123"
+DEFAULT_USERNAME = "Player1"
+
+
 def create_player(username: str) -> uuid.UUID:
-    player_obj: Player = Player.objects.create(username=username)
+    player_obj: Player = Player.objects.create(username=username, token=TOKEN)
     player_obj.save()
     return player_obj.id
+
+
+def create_default_player() -> uuid.UUID:
+    return create_player(DEFAULT_USERNAME)
+
+
+def get_default_login() -> Dict[str, Any]:
+    return {"player": DEFAULT_USERNAME, "token": TOKEN}
 
 
 @override_storage()
@@ -57,16 +70,24 @@ class TrainModelTests(TestCase):
 
 @override_storage()
 class TrainIndexViewTests(TestCase):
+    def setUp(self):
+        create_default_player()
+
+    def test_fails_with_invalid_player(self):
+        url = reverse("trains:index")
+        response = self.client.post(url, data={"player": "fake", "token": "bad"})
+        self.assertEqual(403, response.status_code)
+
     def test_train_index_view_is_empty_for_no_trains(self):
         url = reverse("trains:index")
-        response = self.client.get(url)
+        response = self.client.post(url, data=get_default_login())
         self.assertJSONEqual(response.content, [])
 
     def test_returns_one_train_with_one_train_in_db_and_no_filter(self):
         pk = create_train("train01.zrn")
 
         url = reverse("trains:index")
-        response = self.client.get(url)
+        response = self.client.post(url, data=get_default_login())
         self.assertJSONEqual(response.content, [{"pk": pk, "file": "train01.zrn"}])
 
     def test_returns_two_trains_with_two_trains_in_db_and_no_filter(self):
@@ -74,7 +95,7 @@ class TrainIndexViewTests(TestCase):
         pk2 = create_train("train02.zrn")
 
         url = reverse("trains:index")
-        response = self.client.get(url)
+        response = self.client.post(url, data=get_default_login())
         self.assertJSONEqual(
             response.content,
             [
@@ -89,7 +110,9 @@ class TrainIndexViewTests(TestCase):
         pk3 = create_train("train03.zrn", from_player="player3", to_player="player4")
 
         url = reverse("trains:index")
-        response = self.client.get(url, {"player": "player1"})
+        response = self.client.post(
+            url, data={"search_player": "player1", **get_default_login()}
+        )
         self.assertJSONEqual(
             response.content,
             [
@@ -103,7 +126,7 @@ class TrainIndexViewTests(TestCase):
         pk2 = create_train("train02.zrn")
 
         url = reverse("trains:index")
-        response = self.client.get(url, {"filename": "01"})
+        response = self.client.post(url, data={"filename": "01", **get_default_login()})
         self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
     def test_returns_only_trains_older_than_n_days(self):
@@ -111,36 +134,45 @@ class TrainIndexViewTests(TestCase):
         pk2 = create_train("train02.zrn", upload_date=datetime(2021, 1, 1))
 
         url = reverse("trains:index")
-        response = self.client.get(url, {"upload_before": "2020-12-12"})
+        response = self.client.post(
+            url, data={"upload_before": "2020-12-12", **get_default_login()}
+        )
         self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
     def test_returns_only_undownloaded_trains(self):
         pk1 = create_train("train01.zrn", state=TrainState.AVAILABLE)
         pk2 = create_train("train02.zrn", state=TrainState.DOWNLOADED)
         url = reverse("trains:index")
-        response = self.client.get(url)
+        response = self.client.post(url, data=get_default_login())
         self.assertJSONEqual(response.content, [{"pk": pk1, "file": "train01.zrn"}])
 
 
 @override_storage()
 class TrainDownloadViewTests(TestCase):
+    def setUp(self):
+        create_default_player()
+
     def test_download_fails_without_player_name(self):
         pk = create_train("train_01.zrn")
         url = reverse("trains:download", args=(pk,))
         response = self.client.post(url)
         self.assertEqual(400, response.status_code)
 
+    def test_download_fails_with_invalid_player_name(self):
+        pk = create_train("train_01.zrn")
+        url = reverse("trains:download", args=(pk,))
+        response = self.client.post(url, data={"player": "fake", "token": "bad"})
+        self.assertEqual(403, response.status_code)
+
     def test_download_fails_with_unknown_id(self):
-        player_uuid = create_player("Player1")
         url = reverse("trains:download", args=(1,))
-        response = self.client.post(url, data={"player": player_uuid})
+        response = self.client.post(url, data=get_default_login())
         self.assertEqual(404, response.status_code)
 
     def test_download_redirects_to_file_and_sets_state_and_downloader(self):
-        player_uuid = create_player("Player1")
         pk = create_train("train_01.zrn")
         url = reverse("trains:download", args=(pk,))
-        response = self.client.post(url, data={"player": player_uuid})
+        response = self.client.post(url, data=get_default_login())
 
         self.assertRedirects(response, "/train_01.zrn", fetch_redirect_response=False)
         train: Train = Train.objects.get(pk=pk)
@@ -149,20 +181,40 @@ class TrainDownloadViewTests(TestCase):
         assert "Player1" == train.downloaded_by.username
 
     def test_download_fails_for_downloaded_file(self):
-        player_uuid = create_player("Player1")
         pk = create_train("train_01.zrn", state=TrainState.DOWNLOADED)
         url = reverse("trains:download", args=(pk,))
-        response = self.client.post(url, data={"player": player_uuid})
+        response = self.client.post(url, data=get_default_login())
 
         self.assertEqual(400, response.status_code)
 
 
 @override_storage()
 class TrainUploadViewTests(TestCase):
+    def setUp(self):
+        create_default_player()
+
     def test_upload_fails_without_file(self):
         url = reverse("trains:upload")
         response = self.client.post(url, {})
         self.assertEqual(400, response.status_code)
+
+    def test_upload_fails_with_invalid_player(self):
+        url = reverse("trains:upload")
+
+        filename = "Y1234-01E02F034C0-000123-Player1-Player2.zrn"
+        file_data = b"train_data"
+
+        response = self.client.post(
+            url,
+            {
+                "train_file": BytesIO(file_data),
+                "filename": filename,
+                "player": "fake",
+                "token": "bad",
+            },
+        )
+
+        self.assertEqual(403, response.status_code)
 
     def test_upload_succeeds_with_file(self):
         url = reverse("trains:upload")
@@ -171,7 +223,12 @@ class TrainUploadViewTests(TestCase):
         file_data = b"train_data"
 
         response = self.client.post(
-            url, {"train_file": BytesIO(file_data), "filename": filename}
+            url,
+            {
+                "train_file": BytesIO(file_data),
+                "filename": filename,
+                **get_default_login(),
+            },
         )
 
         assert 200 == response.status_code

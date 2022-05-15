@@ -8,7 +8,7 @@ class PlayerAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {"fields": ["username"]}),
     ]
-    readonly_fields = ("id",)
+    readonly_fields = ("id", "token")
 
 
 admin.site.register(Player, PlayerAdmin)

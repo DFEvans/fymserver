@@ -184,6 +184,9 @@ AWS_S3_REGION_NAME = "us-east-2"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+OTP_STEP_SECS = int(os.getenv("OTP_STEP_SECS", "30"))
+OTP_DRIFT_RANGE = int(os.getenv("OTP_DRIFT_RANGE", "20"))
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

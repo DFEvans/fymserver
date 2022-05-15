@@ -6,21 +6,24 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonR
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 
+from players.decorators import valid_player_required
 from players.models import Player
 
 from .models import Train, TrainState
 
-# Create your views here.
 
 # Create your views here.
+@valid_player_required
 def index(request: HttpRequest) -> HttpResponse:
-    player: str = request.GET.get("player", "")
-    filename: str = request.GET.get("filename", "")
-    upload_before: str = request.GET.get("upload_before", "")
+    search_player: str = request.POST.get("search_player", "")
+    filename: str = request.POST.get("filename", "")
+    upload_before: str = request.POST.get("upload_before", "")
 
     trains = Train.objects.filter(state=TrainState.AVAILABLE)
-    if player:
-        trains = trains.filter(Q(from_player=player) | Q(to_player=player))
+    if search_player:
+        trains = trains.filter(
+            Q(from_player=search_player) | Q(to_player=search_player)
+        )
     if filename:
         trains = trains.filter(train_file__contains=filename)
     if upload_before:
@@ -37,12 +40,13 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 @csrf_exempt
+@valid_player_required
 def download(request: HttpRequest, pk: int) -> HttpResponse:
     player: str = request.POST.get("player", "")
     if not player:
         return HttpResponseBadRequest("No player specified")
 
-    player_obj: Player = get_object_or_404(Player, pk=player)
+    player_obj: Player = get_object_or_404(Player, username=player)
     train: Train = get_object_or_404(Train, pk=pk)
 
     if train.state != TrainState.AVAILABLE:
@@ -55,6 +59,7 @@ def download(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @csrf_exempt
+@valid_player_required
 def upload(request: HttpRequest) -> HttpResponse:
     if len(request.FILES) != 1:
         return HttpResponseBadRequest(
